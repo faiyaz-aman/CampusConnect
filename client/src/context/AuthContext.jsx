@@ -31,8 +31,8 @@ export function AuthProvider({ children }) {
 
   const logout = () => { localStorage.removeItem('cc_token'); setUser(null); };
 
-  const updateInterests = async (interests) => {
-    const { data } = await api.put('/auth/interests', { interests });
+  const updateInterests = async (interests, emailNotificationsEnabled) => {
+    const { data } = await api.put('/auth/interests', { interests, emailNotificationsEnabled });
     setUser(data.user);
   };
 

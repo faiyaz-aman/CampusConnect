@@ -23,8 +23,16 @@ exports.approveEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: 'Event not found' });
 
+    const wasApprovedBefore = event.status === 'approved';
     event.status = status;
     await event.save();
+
+    // Trigger interest notification in background if transitioned to approved
+    if (status === 'approved' && !wasApprovedBefore) {
+      const { notifyMatchingStudents } = require('../services/notificationService');
+      notifyMatchingStudents(event).catch(err => console.error('Notification dispatch failure:', err));
+    }
+
     res.json({ event });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -70,7 +78,18 @@ exports.verifyClub = async (req, res) => {
 
     // Auto-approve all pending events of this club if they are now verified
     if (!!verifiedStatus) {
-      await Event.updateMany({ organizer: club._id, status: 'pending' }, { status: 'approved' });
+      const pendingEvents = await Event.find({ organizer: club._id, status: 'pending' });
+      if (pendingEvents.length > 0) {
+        const eventIds = pendingEvents.map(e => e._id);
+        await Event.updateMany({ _id: { $in: eventIds } }, { status: 'approved' });
+
+        // Trigger notifications asynchronously for all approved events
+        const { notifyMatchingStudents } = require('../services/notificationService');
+        for (const ev of pendingEvents) {
+          ev.status = 'approved'; // Mutate to pass status check in service
+          notifyMatchingStudents(ev).catch(err => console.error('Batch notification dispatch failure:', err));
+        }
+      }
     }
 
     res.json({ club });

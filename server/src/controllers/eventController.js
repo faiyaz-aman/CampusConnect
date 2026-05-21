@@ -105,6 +105,13 @@ exports.create = async (req, res) => {
       posterUrl: posterUrl || '',
       status
     });
+
+    // Trigger matching notifications asynchronously if approved instantly
+    if (status === 'approved') {
+      const { notifyMatchingStudents } = require('../services/notificationService');
+      notifyMatchingStudents(event).catch(err => console.error('Notification dispatch failure:', err));
+    }
+
     res.json({ event });
   } catch (err) {
     res.status(500).json({ message: err.message });

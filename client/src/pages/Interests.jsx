@@ -14,6 +14,7 @@ const CATEGORY_META = [
 export default function Interests() {
   const { user, updateInterests } = useAuth();
   const [picked, setPicked] = useState([]);
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
   const [saved, setSaved] = useState(false);
   const [loadingSave, setLoadingSave] = useState(false);
   
@@ -23,8 +24,11 @@ export default function Interests() {
 
   // Fix: Async state sync when user auth context finishes loading
   useEffect(() => {
-    if (user?.interests) {
-      setPicked(user.interests);
+    if (user) {
+      if (user.interests) {
+        setPicked(user.interests);
+      }
+      setEmailNotificationsEnabled(user.emailNotificationsEnabled !== false);
     }
   }, [user]);
 
@@ -54,7 +58,7 @@ export default function Interests() {
   const handleSave = async () => {
     setLoadingSave(true);
     try {
-      await updateInterests(picked);
+      await updateInterests(picked, emailNotificationsEnabled);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
       // Re-fetch recommendations matching new vibes
@@ -146,6 +150,48 @@ export default function Interests() {
               )}
             </div>
           </div>
+
+          {/* Email Alert Preferences Card */}
+          <div className="card bg-surface/50 border border-white/5 p-6 rounded-3xl relative overflow-hidden space-y-4">
+            <div className="absolute top-0 right-0 h-40 w-40 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex items-start justify-between gap-4 relative">
+              <div className="space-y-1">
+                <h2 className="text-lg sm:text-xl font-bold font-display text-accent flex items-center gap-2">
+                  📧 Email Alert Settings
+                </h2>
+                <p className="text-xs text-muted">
+                  Get notified instantly when organizers publish hot events matching your vibe.
+                </p>
+              </div>
+
+              {/* Glassmorphic Switch */}
+              <button
+                type="button"
+                onClick={() => setEmailNotificationsEnabled(!emailNotificationsEnabled)}
+                className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 relative shrink-0 ${
+                  emailNotificationsEnabled ? 'bg-accent/80 hover:bg-accent' : 'bg-white/10 hover:bg-white/20'
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full bg-bg shadow-md transition-transform duration-300 transform ${
+                    emailNotificationsEnabled ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-2xl relative">
+              <span className="text-xl">🔔</span>
+              <p className="text-[10px] text-muted/80 leading-relaxed">
+                {emailNotificationsEnabled 
+                  ? "Auto-alerts are ACTIVE. You will receive dynamic email summaries with event schedules and venues."
+                  : "Auto-alerts are MUTED. You can still check matching event listings manually in the dashboard."
+                }
+              </p>
+            </div>
+          </div>
+
         </div>
 
         {/* Live Matching Feed Widget */}

@@ -42,9 +42,17 @@ exports.me = async (req, res) => {
 };
 
 exports.updateInterests = async (req, res) => {
+  const updates = {};
+  if (Array.isArray(req.body.interests)) {
+    updates.interests = req.body.interests;
+  }
+  if (req.body.emailNotificationsEnabled !== undefined) {
+    updates.emailNotificationsEnabled = !!req.body.emailNotificationsEnabled;
+  }
+
   const user = await User.findByIdAndUpdate(
     req.user.id,
-    { interests: Array.isArray(req.body.interests) ? req.body.interests : [] },
+    updates,
     { new: true }
   );
   res.json({ user: publicUser(user) });
@@ -76,6 +84,7 @@ function publicUser(u) {
     email: u.email, 
     role: u.role, 
     interests: u.interests,
+    emailNotificationsEnabled: u.emailNotificationsEnabled !== false,
     department: u.department,
     year: u.year,
     followedClubs: u.followedClubs || [],

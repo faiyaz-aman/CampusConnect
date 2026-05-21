@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema({
   passwordHash: { type: String, required: true },
   role: { type: String, enum: ['student', 'organizer', 'admin'], default: 'student' },
   interests: [{ type: String }], // e.g. ['tech','music','sports','arts','academic']
+  emailNotificationsEnabled: { type: Boolean, default: true },
   department: { type: String, default: '' },
   year: { type: Number, default: 1 },
   followedClubs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
