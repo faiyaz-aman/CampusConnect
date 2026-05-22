@@ -110,7 +110,10 @@ async function seed() {
     description: 'The ultimate 24-hour sprint. Build, pitch, and win prizes up to $5000. Food, energy drinks, and premium stickers are on us! All departments welcome.',
     category: 'tech',
     date: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+    endTime: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000),
     location: 'Engineering Block Hall B',
+    buildingName: 'Engineering Block',
+    coordinates: { x: 35, y: 38 },
     organizer: codingClub._id,
     tags: ['hackathon', 'coding', 'ai'],
     mode: 'in-person',
@@ -126,7 +129,10 @@ async function seed() {
     description: 'Watch the top 8 college bands battle it out for the title of Rock Champion. Crowd voting determines the winner, so bring your friends!',
     category: 'music',
     date: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+    endTime: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000),
     location: 'Campus Amphitheater',
+    buildingName: 'Campus Amphitheater',
+    coordinates: { x: 68, y: 24 },
     organizer: musicClub._id,
     tags: ['rock', 'livemusic', 'instruments'],
     mode: 'in-person',
@@ -142,7 +148,10 @@ async function seed() {
     description: 'Learn the advanced tactics of argumentation, logical fallacies, and high-impact public speaking from regional debate champions.',
     category: 'academic',
     date: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000), // 8 days from now
+    endTime: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000),
     location: 'Seminar Room 102',
+    buildingName: 'Seminar Hall',
+    coordinates: { x: 22, y: 70 },
     organizer: debateClub._id,
     tags: ['speaking', 'rhetoric', 'debate'],
     mode: 'in-person',
@@ -158,6 +167,7 @@ async function seed() {
     description: 'Hands-on coding workshop exploring prompt engineering, vector databases, and agentic workflows. Bring your laptop and your API keys.',
     category: 'tech',
     date: new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000),
+    endTime: new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000),
     location: 'Zoom webinar link',
     organizer: codingClub._id,
     tags: ['ai', 'llms', 'python'],
@@ -166,6 +176,44 @@ async function seed() {
     status: 'approved',
     isFeatured: false,
     posterUrl: 'https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800'
+  });
+
+  // NEW LIVE EVENT 1: Esports Championship at Student Center
+  const liveEvent1 = await Event.create({
+    title: 'Campus Esports Championship',
+    description: 'FIFA, Valorant, and Super Smash Bros finals! Free pizza, soda, and exclusive gaming merch. Live stream on the big screen!',
+    category: 'sports',
+    date: new Date(now.getTime() - 1 * 60 * 60 * 1000), // started 1 hour ago
+    endTime: new Date(now.getTime() + 3 * 60 * 60 * 1000), // ends in 3 hours
+    location: 'Student Center Lounge',
+    buildingName: 'Student Center',
+    coordinates: { x: 50, y: 62 },
+    organizer: codingClub._id,
+    tags: ['gaming', 'esports', 'tournament'],
+    mode: 'in-person',
+    capacity: 80,
+    status: 'approved',
+    isFeatured: true,
+    posterUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800'
+  });
+
+  // NEW LIVE EVENT 2: Acoustic Sunset Jam Session at Amphitheater
+  const liveEvent2 = await Event.create({
+    title: 'Acoustic Sunset Jam Session',
+    description: 'Grab a hot cider and listen to unplugged covers and original acoustic music by campus songwriters. Bring your acoustic guitar or voice!',
+    category: 'music',
+    date: new Date(now.getTime() - 30 * 60 * 1000), // started 30 mins ago
+    endTime: new Date(now.getTime() + 1.5 * 60 * 60 * 1000), // ends in 1.5 hours
+    location: 'Campus Amphitheater Steps',
+    buildingName: 'Campus Amphitheater',
+    coordinates: { x: 68, y: 24 },
+    organizer: musicClub._id,
+    tags: ['unplugged', 'acoustic', 'sunset', 'vocals'],
+    mode: 'in-person',
+    capacity: 100,
+    status: 'approved',
+    isFeatured: false,
+    posterUrl: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800'
   });
 
   console.log('📅 Events created.');
@@ -178,6 +226,10 @@ async function seed() {
   // Maya registers for Battle of Bands and AI Workshop
   await Registration.create({ event: event2._id, user: student2._id, status: 'registered', qrCodeString: 'QR-MAYABAND3' });
   await Registration.create({ event: event4._id, user: student2._id, status: 'registered', qrCodeString: 'QR-MAYAAI4' });
+
+  // Maya and Liam register for the Esports Championship
+  await Registration.create({ event: liveEvent1._id, user: student2._id, status: 'registered', qrCodeString: 'QR-MAYAESPORTS5' });
+  await Registration.create({ event: liveEvent1._id, user: student3._id, status: 'registered', qrCodeString: 'QR-LIAMESPORTS6' });
 
   // 6. Create Saves (Interactions)
   // Alex saves AI Workshop

@@ -5,6 +5,7 @@ const { auth, requireRole } = require('../middleware/auth');
 router.get('/', c.list);
 router.get('/recommended', auth(), c.recommended);
 router.get('/my/activity', auth(), c.myActivity); // Declared before /:id to prevent route parameter collision
+router.get('/live', auth(false), c.liveEvents);
 router.get('/:id', auth(false), c.get);
 router.post('/', auth(), requireRole('organizer'), c.create);
 router.put('/:id', auth(), requireRole('organizer'), c.update);

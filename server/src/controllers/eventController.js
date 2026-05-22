@@ -84,13 +84,19 @@ exports.get = async (req, res) => {
 // Create event
 exports.create = async (req, res) => {
   try {
-    const { title, description, category, date, location, tags, mode, capacity, posterUrl } = req.body;
+    const { title, description, category, date, location, tags, mode, capacity, posterUrl, buildingName, coordinates, endTime } = req.body;
     if (!title || !category || !date || !location)
       return res.status(400).json({ message: 'Missing fields' });
 
     // Check if the organizer is verified for auto-approval
     const creator = await User.findById(req.user.id);
     const status = creator && creator.verifiedStatus ? 'approved' : 'pending';
+
+    // Calculate default endTime if not provided
+    let finalEndTime = endTime ? new Date(endTime) : null;
+    if (!finalEndTime && date) {
+      finalEndTime = new Date(new Date(date).getTime() + 2 * 60 * 60 * 1000); // 2 hours default
+    }
 
     const event = await Event.create({
       title,
@@ -103,7 +109,10 @@ exports.create = async (req, res) => {
       mode: mode || 'in-person',
       capacity: Number(capacity) || 100,
       posterUrl: posterUrl || '',
-      status
+      status,
+      endTime: finalEndTime,
+      buildingName: buildingName || '',
+      coordinates: coordinates || undefined
     });
 
     // Trigger matching notifications asynchronously if approved instantly
@@ -580,6 +589,73 @@ exports.cancelRSVP = async (req, res) => {
     }
 
     res.json({ message: 'RSVP cancelled successfully', registration: reg });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Heuristic to resolve coordinates based on venue string
+const resolveCoordinates = (locationStr) => {
+  if (!locationStr) return null;
+  const lower = locationStr.toLowerCase();
+  if (lower.includes('engineering')) {
+    return { buildingName: 'Engineering Block', x: 35, y: 38 };
+  } else if (lower.includes('amphitheater') || lower.includes('amphi')) {
+    return { buildingName: 'Campus Amphitheater', x: 68, y: 24 };
+  } else if (lower.includes('student center') || lower.includes('cafeteria') || lower.includes('lounge')) {
+    return { buildingName: 'Student Center', x: 50, y: 62 };
+  } else if (lower.includes('gym') || lower.includes('sports') || lower.includes('arena') || lower.includes('stadium')) {
+    return { buildingName: 'Sports Arena', x: 82, y: 45 };
+  } else if (lower.includes('seminar') || lower.includes('hall 102') || lower.includes('hall b') || lower.includes('lecture')) {
+    return { buildingName: 'Seminar Hall', x: 22, y: 70 };
+  } else if (lower.includes('library')) {
+    return { buildingName: 'Central Library', x: 48, y: 28 };
+  }
+  return null;
+};
+
+// Retrieve currently live approved events
+exports.liveEvents = async (req, res) => {
+  try {
+    const now = new Date();
+    // Fetch approved events currently active
+    const events = await Event.find({
+      status: 'approved',
+      $or: [
+        {
+          date: { $lte: now },
+          endTime: { $gte: now }
+        },
+        {
+          date: { $lte: now },
+          endTime: { $exists: false },
+          // fallback: assume 2 hours duration
+          $expr: {
+            $gte: [
+              { $add: ["$date", 2 * 60 * 60 * 1000] },
+              now
+            ]
+          }
+        }
+      ]
+    }).populate('organizer', 'name email verifiedStatus');
+
+    // Enrich coordinates for in-person events if not already set
+    const enriched = events.map(ev => {
+      const evObj = ev.toObject();
+      if (evObj.mode === 'in-person' && (!evObj.coordinates || evObj.coordinates.x === undefined || evObj.coordinates.y === undefined)) {
+        const resolved = resolveCoordinates(evObj.location);
+        if (resolved) {
+          evObj.buildingName = evObj.buildingName || resolved.buildingName;
+          evObj.coordinates = evObj.coordinates || {};
+          evObj.coordinates.x = resolved.x;
+          evObj.coordinates.y = resolved.y;
+        }
+      }
+      return evObj;
+    });
+
+    res.json({ events: enriched });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -12,7 +12,13 @@ const EventSchema = new mongoose.Schema({
   capacity: { type: Number, default: 100 },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   posterUrl: { type: String, default: '' },
-  isFeatured: { type: Boolean, default: false }
+  isFeatured: { type: Boolean, default: false },
+  endTime: { type: Date },
+  buildingName: { type: String, default: '' },
+  coordinates: {
+    x: { type: Number },
+    y: { type: Number }
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Event', EventSchema);
