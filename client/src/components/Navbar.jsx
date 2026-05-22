@@ -39,7 +39,7 @@ export default function Navbar() {
         <Link to="/" className="flex items-center gap-2">
           {!logoFailed ? (
             <img 
-              src="/assets/logo.png" 
+              src="/logo.jpg" 
               alt="CampusConnect Logo" 
               className="h-7 w-auto max-h-7 object-contain rounded-md" 
               onError={() => setLogoFailed(true)} 
