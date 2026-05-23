@@ -11,15 +11,23 @@ const sendTicketEmail = async ({ toEmail, studentName, eventName, dateString, lo
     return { success: false, reason: 'Email credentials not configured in server .env' };
   }
 
-  const transporter = nodemailer.createTransport({
-    host: emailHost,
-    port: emailPort,
-    secure: emailPort === 465,
-    auth: {
-      user: emailUser,
-      pass: emailPass
-    }
-  });
+ const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT),
+  secure: true, // true for port 465
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Inside your mailOptions, update the "from" field to use Resend's free sending sandbox domain:
+const mailOptions = {
+  from: '"CampusConnect" <onboarding@resend.dev>', // 🌟 Resend requires this default sender for free accounts!
+  to: toEmail,
+  subject: `🎟️ Entry Ticket Confirmed: ${eventName}`,
+  html: `...`
+};
 
   const qrImageLink = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${qrCodeString}`;
 
