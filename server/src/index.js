@@ -15,11 +15,19 @@ const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 
+const cors = require('cors');
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173", 
-    "https://campus-connect-roan-nine.vercel.app" // 🌟 Your live production link!
-  ],
+  origin: function (origin, callback) {
+    // Allows localhost, your main Vercel domain, and any Vercel preview deployment URLs
+    if (!origin || 
+        origin.startsWith("http://localhost") || 
+        origin.endsWith(".vercel.app")) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
