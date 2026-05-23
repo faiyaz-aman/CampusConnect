@@ -1,3 +1,6 @@
+// Bypasses local ISP DNS block for MongoDB Atlas
+const dns = require('node:dns');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 // CampusConnect API entrypoint
 require('dotenv').config();
 const express = require('express');
@@ -28,6 +31,10 @@ app.use((err, _req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-connectDB().then(() => {
-  app.listen(PORT, () => console.log(`🚀 API on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 API listening on port ${PORT}`);
+  connectDB().catch(err => {
+    console.error('❌ MongoDB connection failed during startup:', err);
+  });
 });
+
