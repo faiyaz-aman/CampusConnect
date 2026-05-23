@@ -14,7 +14,16 @@ const adminRoutes = require('./routes/adminRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*' }));
+
+app.use(cors({
+  origin: [
+    "http://localhost:5173", 
+    "https://campusconnect-roan-nine.vercel.app" // 🌟 Your live production link!
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
 
 app.get('/', (_, res) => res.json({ ok: true, name: 'CampusConnect API' }));
