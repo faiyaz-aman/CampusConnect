@@ -4,35 +4,30 @@ const sendTicketEmail = async ({ toEmail, studentName, eventName, dateString, lo
   const emailUser = process.env.EMAIL_USER;
   const emailPass = process.env.EMAIL_PASS;
   const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
-  const emailPort = Number(process.env.EMAIL_PORT) || 587;
+  const emailPort = Number(process.env.EMAIL_PORT) || 465;
 
   if (!emailUser || !emailPass) {
     console.warn('⚠️ Mail configuration missing in environment. Email not sent.');
     return { success: false, reason: 'Email credentials not configured in server .env' };
   }
 
- const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: Number(process.env.EMAIL_PORT),
-  secure: true, // true for port 465
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
-// Inside your mailOptions, update the "from" field to use Resend's free sending sandbox domain:
-const mailOptions = {
-  from: '"CampusConnect" <onboarding@resend.dev>', // 🌟 Resend requires this default sender for free accounts!
-  to: toEmail,
-  subject: `🎟️ Entry Ticket Confirmed: ${eventName}`,
-  html: `...`
-};
+  // Set up the transporter configuration dynamically using your environmental properties
+  const transporter = nodemailer.createTransport({
+    host: emailHost,
+    port: emailPort,
+    secure: emailPort === 465, 
+    auth: {
+      user: emailUser,
+      pass: emailPass
+    }
+  });
 
   const qrImageLink = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${qrCodeString}`;
 
+  // 🌟 FIX: Only ONE mailOptions object declared here!
   const mailOptions = {
-    from: `"CampusConnect Updates" <${emailUser}>`,
+    // If you use Resend, this needs to be 'onboarding@resend.dev'. If using Gmail, use your email user variable.
+    from: emailHost.includes('resend') ? '"CampusConnect" <onboarding@resend.dev>' : `"CampusConnect Updates" <${emailUser}>`,
     to: toEmail,
     subject: `🎟️ Entry Ticket Confirmed: ${eventName}`,
     html: `
@@ -101,7 +96,7 @@ const sendCheckinEmail = async ({ toEmail, studentName, eventName, dateString, l
   const emailUser = process.env.EMAIL_USER;
   const emailPass = process.env.EMAIL_PASS;
   const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
-  const emailPort = Number(process.env.EMAIL_PORT) || 587;
+  const emailPort = Number(process.env.EMAIL_PORT) || 465;
 
   if (!emailUser || !emailPass) {
     console.warn('⚠️ Mail configuration missing in environment. Check-in email not sent.');
@@ -121,7 +116,7 @@ const sendCheckinEmail = async ({ toEmail, studentName, eventName, dateString, l
   const qrImageLink = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${qrCodeString}`;
 
   const mailOptions = {
-    from: `"CampusConnect Updates" <${emailUser}>`,
+    from: emailHost.includes('resend') ? '"CampusConnect" <onboarding@resend.dev>' : `"CampusConnect Updates" <${emailUser}>`,
     to: toEmail,
     subject: `✅ Check-in Verified: ${eventName}`,
     html: `
